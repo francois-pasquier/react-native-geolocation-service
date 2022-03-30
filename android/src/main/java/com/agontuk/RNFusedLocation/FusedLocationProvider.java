@@ -28,6 +28,7 @@ import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 
 import java.util.Random;
+import java.lang.RuntimeException;
 
 public class FusedLocationProvider implements LocationProvider {
   private final ReactApplicationContext context;
@@ -67,8 +68,13 @@ public class FusedLocationProvider implements LocationProvider {
   private final Runnable timeoutRunnable = new Runnable() {
     @Override
     public void run() {
-      locationChangeListener.onLocationError(LocationError.TIMEOUT, null);
-      fusedLocationProviderClient.removeLocationUpdates(locationCallback);
+      try {
+        locationChangeListener.onLocationError(LocationError.TIMEOUT, null);
+        fusedLocationProviderClient.removeLocationUpdates(locationCallback);
+      } catch (RuntimeException e) {
+        // Illegal callback invocation
+        Log.w(RNFusedLocationModule.TAG, e.getMessage());
+      }
     }
   };
 

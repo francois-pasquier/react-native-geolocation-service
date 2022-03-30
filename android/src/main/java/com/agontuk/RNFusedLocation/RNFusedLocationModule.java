@@ -19,6 +19,7 @@ import com.facebook.react.modules.core.DeviceEventManagerModule.RCTDeviceEventEm
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.lang.RuntimeException;
 
 public class RNFusedLocationModule extends ReactContextBaseJavaModule implements ActivityEventListener {
   public static final String TAG = "RNFusedLocation";
@@ -82,14 +83,25 @@ public class RNFusedLocationModule extends ReactContextBaseJavaModule implements
     locationProvider.getCurrentLocation(locationOptions, new LocationChangeListener() {
       @Override
       public void onLocationChange(Location location) {
-        success.invoke(LocationUtils.locationToMap(location));
-        singleLocationProviders.remove(key);
+        try {
+          success.invoke(LocationUtils.locationToMap(location));
+          singleLocationProviders.remove(key);
+        } catch (RuntimeException e) {
+          // Illegal callback invocation
+          Log.w(TAG, e.getMessage());
+        }
+        
       }
 
       @Override
       public void onLocationError(LocationError locationError, @Nullable String message) {
-        error.invoke(LocationUtils.buildError(locationError, message));
-        singleLocationProviders.remove(key);
+        try {
+          error.invoke(LocationUtils.buildError(locationError, message));
+          singleLocationProviders.remove(key);
+        } catch (RuntimeException e) {
+            // Illegal callback invocation
+            Log.w(TAG, e.getMessage());
+        }
       }
     });
   }

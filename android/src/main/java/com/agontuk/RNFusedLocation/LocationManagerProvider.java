@@ -16,6 +16,7 @@ import androidx.annotation.Nullable;
 import com.facebook.react.bridge.ReactApplicationContext;
 
 import java.util.List;
+import java.lang.RuntimeException;
 
 public class LocationManagerProvider implements LocationProvider {
   private final LocationManager locationManager;
@@ -57,8 +58,12 @@ public class LocationManagerProvider implements LocationProvider {
   private final Runnable timeoutRunnable = new Runnable() {
     @Override
     public void run() {
-      locationChangeListener.onLocationError(LocationError.TIMEOUT, null);
-      removeLocationUpdates();
+      try {
+        locationChangeListener.onLocationError(LocationError.TIMEOUT, null);
+        removeLocationUpdates();
+      } catch (RuntimeException e) {
+        Log.w(RNFusedLocationModule.TAG, e.getMessage());
+      }
     }
   };
 
